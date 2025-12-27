@@ -1,0 +1,162 @@
+<Page x:Class="SpaceMaster.Views.Pages.MigrationPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:vm="clr-namespace:SpaceMaster.ViewModels"
+      xmlns:converters="clr-namespace:SpaceMaster.Views.Converters"
+      Title="迁移">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:InvertedBoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" />
+    </Page.Resources>
+
+    <Page.DataContext>
+        <vm:MigrationViewModel />
+    </Page.DataContext>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0"
+                   Text="文件迁移"
+                   FontSize="28"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,16" />
+
+        <!-- 拖拽区域 -->
+        <Border Grid.Row="1"
+                x:Name="DropZone"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="2"
+                CornerRadius="8"
+                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                AllowDrop="True"
+                DragOver="DropZone_DragOver"
+                Drop="DropZone_Drop"
+                MinHeight="200"
+                Margin="0,0,0,16">
+            <Grid>
+                <!-- 无文件时显示 -->
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Visibility="{Binding HasSource, Converter={StaticResource InvertedBoolToVisibilityConverter}}">
+                    <ui:SymbolIcon Symbol="ArrowDownload24"
+                                   FontSize="48"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   HorizontalAlignment="Center" />
+                    <TextBlock Text="拖拽文件或文件夹到这里"
+                               FontSize="16"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,12,0,0" />
+                    <TextBlock Text="或"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0" />
+                    <ui:Button Content="浏览文件夹"
+                               Icon="{ui:SymbolIcon FolderOpen24}"
+                               Appearance="Primary"
+                               HorizontalAlignment="Center"
+                               Click="BtnBrowse_Click"
+                               Margin="0,8,0,0" />
+                </StackPanel>
+
+                <!-- 已选择文件时显示 -->
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Visibility="{Binding HasSource, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ui:SymbolIcon Symbol="Folder24"
+                                   FontSize="48"
+                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                   HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding SourcePath}"
+                               FontSize="14"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               MaxWidth="400"
+                               HorizontalAlignment="Center"
+                               Margin="0,12,0,4" />
+                    <TextBlock Text="{Binding SourceInfo}"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               HorizontalAlignment="Center" />
+                    <ui:Button Content="清除"
+                               Appearance="Secondary"
+                               Command="{Binding ClearSourceCommand}"
+                               HorizontalAlignment="Center"
+                               Margin="0,12,0,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 目标磁盘选择 -->
+        <Grid Grid.Row="2" Margin="0,0,0,16" Visibility="{Binding HasSource, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="目标磁盘："
+                       VerticalAlignment="Center"
+                       Margin="0,0,12,0" />
+
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding AvailableDrives}"
+                      SelectedItem="{Binding SelectedTargetDrive}"
+                      DisplayMemberPath="DisplayName"
+                      MinWidth="200" />
+
+            <TextBlock Grid.Column="1"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center">
+                <Run Text="可用空间: " />
+                <Run Text="{Binding SelectedTargetDrive.FreeSpaceFormatted, Mode=OneWay, FallbackValue='-'}" FontWeight="SemiBold" />
+            </TextBlock>
+        </Grid>
+
+        <!-- 进度条 -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,16" Visibility="{Binding IsMigrating, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid Margin="0,0,0,4">
+                <TextBlock Text="{Binding CurrentFile}" />
+                <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Right" />
+            </Grid>
+            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="8" />
+        </StackPanel>
+
+        <!-- 操作按钮和状态 -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="{Binding StatusMessage}"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <ui:Button Content="取消"
+                           Appearance="Secondary"
+                           Command="{Binding CancelMigrationCommand}"
+                           Visibility="{Binding IsMigrating, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Margin="0,0,8,0" />
+
+                <ui:Button Content="开始迁移"
+                           Appearance="Primary"
+                           Command="{Binding MigrateCommand}"
+                           Icon="{ui:SymbolIcon ArrowMove24}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>
