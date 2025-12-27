@@ -6,3 +6,5 @@ riderModule.iml
 CLAUDE.md
 .claude
 .idea
+publish/
+*.zip
