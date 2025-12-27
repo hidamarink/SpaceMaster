@@ -9,9 +9,9 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>app.ico</ApplicationIcon>
-        <Version>1.0.0</Version>
-        <AssemblyVersion>1.0.0.18</AssemblyVersion>
-        <FileVersion>1.0.0.18</FileVersion>
+        <Version>1.0.1</Version>
+        <AssemblyVersion>1.0.1.0</AssemblyVersion>
+        <FileVersion>1.0.1.0</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
